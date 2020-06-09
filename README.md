@@ -939,7 +939,7 @@ This is identical to a map followed by flat with depth 1.
 
 a new `IndexableArray` of dept 1.
 
-▸ **flatMap**<**U**, **This**>(`callbackFn`: CallbackThis‹I, DK, OK, TH, U | keyof U[], This›, `thisArg?`: [This](undefined), ...`rest`: never[]): _[IndexableArray](#classesindexablearraymd)‹U, AvailableDefaultIndex‹U, DK, OK›, AvailableIndex‹U, DK, OK›, TH›_
+▸ **flatMap**<**U**, **This**>(`callbackFn`: CallbackThis‹I, DK, OK, TH, U | keyof U[], This›, `thisArg?`: [This](undefined), ...`rest`: any[]): _[IndexableArray](#classesindexablearraymd)‹U, AvailableDefaultIndex‹U, DK, OK›, AvailableIndex‹U, DK, OK›, TH›_
 
 _Overrides void_
 
@@ -961,7 +961,7 @@ This is identical to a map followed by flat with depth 1.
 | ------------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `callbackFn` | CallbackThis‹I, DK, OK, TH, U &#124; keyof U[], This› | is a function that accepts up to three arguments. The flatMap method calls the callback function one time for each element in the array. |
 | `thisArg?`   | [This](undefined)                                     | -                                                                                                                                        |
-| `...rest`    | never[]                                               | -                                                                                                                                        |
+| `...rest`    | any[]                                                 | -                                                                                                                                        |
 
 **Returns:** _[IndexableArray](#classesindexablearraymd)‹U, AvailableDefaultIndex‹U, DK, OK›, AvailableIndex‹U, DK, OK›, TH›_
 

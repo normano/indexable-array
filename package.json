@@ -1,5 +1,5 @@
 {
-  "name": "indexable-array",
+  "name": "@excsn/indexable-array",
   "version": "0.6.4",
   "description": "Extended native JavaScript Array which provides indexed lookup similar to native Map.",
   "keywords": [
@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@types/lodash.set": "^4.3.6",
+    "@types/node": "^14.0.12",
     "devkeeper": "^0.1.49"
   },
   "devkeeperModifications": {
@@ -98,6 +99,6 @@
     "arrayKeys": {
       "files": []
     },
-    "version": "0.1.49"
+    "version": "0.1.75"
   }
 }

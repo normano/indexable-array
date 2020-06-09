@@ -60,8 +60,8 @@ const nonEnumerableProps = new Set([
  */
 export default class IndexableArray<
   I extends any,
-  DK extends keyof I = never,
-  OK extends keyof I = never,
+  DK extends keyof I = any,
+  OK extends keyof I = any,
   TH extends boolean = false
 > extends Array<I> {
   private readonly primitiveLookups: PrimitiveLookups<I, DK, OK> = new Map();
@@ -89,7 +89,7 @@ export default class IndexableArray<
   private constructor(...items: I[]) {
     super(...items);
 
-    nonEnumerableProps.forEach(property => Object.defineProperty(this, property, { writable: true, enumerable: false })); // Make added fields non-enumerable.
+    nonEnumerableProps.forEach((property) => Object.defineProperty(this, property, { writable: true, enumerable: false })); // Make added fields non-enumerable.
 
     return new Proxy(this, {
       set: (target: IndexableArray<I, DK, OK, TH>, property: number, value: I): boolean => target.setProperty(property, value),
@@ -101,7 +101,7 @@ export default class IndexableArray<
     I2 extends any,
     DK2 extends keyof I2,
     DK3 extends keyof I2 = DK2,
-    OK2 extends keyof I2 = never,
+    OK2 extends keyof I2 = any,
     OK3 extends keyof I2 = OK2,
     TH2 extends boolean = false
   >(
@@ -110,7 +110,7 @@ export default class IndexableArray<
     ...indexKeys: OK3[]
   ): IndexableArray<I2, DK3, Exclude<OK3, DK3>, TH2>;
 
-  public static from<I2, DK2 extends keyof I2, OK2 extends keyof I2 = never>(
+  public static from<I2, DK2 extends keyof I2, OK2 extends keyof I2 = any>(
     arrayLike: Iterable<I2> | ArrayLike<I2>,
     defaultKey: DK2,
     ...indexKeys: OK2[]
@@ -129,7 +129,7 @@ export default class IndexableArray<
     I2 extends any,
     DK2 extends keyof I2,
     DK3 extends keyof I2 = DK2,
-    OK2 extends keyof I2 = never,
+    OK2 extends keyof I2 = any,
     OK3 extends keyof I2 = OK2,
     TH2 extends boolean = false
   >(
@@ -160,7 +160,7 @@ export default class IndexableArray<
     I2 extends any,
     DK2 extends keyof I2,
     DK3 extends keyof I2 = DK2,
-    OK2 extends keyof I2 = never,
+    OK2 extends keyof I2 = any,
     OK3 extends keyof I2 = OK2,
     TH2 extends boolean = false
   >(
@@ -169,7 +169,7 @@ export default class IndexableArray<
     ...indexKeys: OK3[]
   ): IndexableArray<I2, DK3, Exclude<OK3, DK3>, true>;
 
-  public static throwingFrom<I2, DK2 extends keyof I2, OK2 extends keyof I2 = never>(
+  public static throwingFrom<I2, DK2 extends keyof I2, OK2 extends keyof I2 = any>(
     arrayLike: Iterable<I2> | ArrayLike<I2>,
     defaultKey: DK2,
     ...indexKeys: OK2[]
@@ -188,7 +188,7 @@ export default class IndexableArray<
     I2 extends any,
     DK2 extends keyof I2,
     DK3 extends keyof I2 = DK2,
-    OK2 extends keyof I2 = never,
+    OK2 extends keyof I2 = any,
     OK3 extends keyof I2 = OK2,
     TH2 extends boolean = false
   >(
@@ -214,7 +214,7 @@ export default class IndexableArray<
    * @ignore
    */
   private clearIndex(): void {
-    this.indexedKeys.forEach(key => {
+    this.indexedKeys.forEach((key) => {
       this.primitiveLookups.set(key, new Map());
       this.objectLookups.set(key, new WeakMap());
       this.builtIndexKeys.delete(key);
@@ -235,8 +235,8 @@ export default class IndexableArray<
     this.operationAtEnd = true;
 
     keys
-      .filter(key => !this.builtIndexKeys.has(key))
-      .forEach(key => {
+      .filter((key) => !this.builtIndexKeys.has(key))
+      .forEach((key) => {
         if (!this._defaultKey) {
           this._defaultKey = key as DK;
         }
@@ -262,7 +262,7 @@ export default class IndexableArray<
    * const users = new IndexableArray({ id: 23, name: "Geroge" }, { id: 96, name: "Lisa" }).addIndex("name");
    * const other = new IndexableArray().addIndexFrom(users); // Indexes "name".
    */
-  public _copyMeta<I2 extends any, DK2 extends DK, OK2 extends OK>(source: IndexableArray<I2, DK2, OK2, any>): this {
+  public _copyMeta<I2 extends I, DK2 extends DK, OK2 extends OK>(source: IndexableArray<I2, DK2, OK2, any>): this {
     this._throwUnknown = source._throwUnknown;
     return this.addIndex(...source.indexedKeys);
   }
@@ -298,10 +298,10 @@ export default class IndexableArray<
    * @param keys are fields to add lookup. (i.e. "name")
    */
   private addToIndex(position: number, item: I, keys: (DK | OK)[] = Array.from(this.indexedKeys)): void {
-    keys.forEach(key => {
+    keys.forEach((key) => {
       const value = item[key];
       const lookup = this.getLookup(key, value);
-      const sortedIndex = lookup.get(value);
+      const sortedIndex = lookup.get(value as any);
 
       if (sortedIndex) {
         if (position === 0) {
@@ -312,7 +312,7 @@ export default class IndexableArray<
           sorted.add(sortedIndex, position);
         }
       } else {
-        lookup.set(value, [position]);
+        lookup.set(value as any, [position]);
       }
     });
   }
@@ -327,13 +327,13 @@ export default class IndexableArray<
    */
   private removeFromIndex(position: number, keys: (DK | OK)[] = Array.from(this.indexedKeys)): void {
     const item = this[position];
-    keys.forEach(key => {
+    keys.forEach((key) => {
       const value = item[key];
       const lookup = this.getLookup(key, value);
-      const sortedIndex = lookup.get(value) as number[]; // Cannot be undefined, otherwise value should not be there and therefore should not have executed a delete operation.
+      const sortedIndex = lookup.get(value as any) as number[]; // Cannot be undefined, otherwise value should not be there and therefore should not have executed a delete operation.
 
       if (sortedIndex.length === 1) {
-        lookup.delete(value);
+        lookup.delete(value as any);
       } else if (position === 0) {
         sortedIndex.shift();
       } else if (this.operationAtEnd || position >= this.length - 1) {
@@ -459,10 +459,10 @@ export default class IndexableArray<
   public sortBy(key: DK | OK = this.defaultKey): this {
     return this.sort((a, b) => {
       if (typeof a[key] === "number" && typeof b[key] === "number") {
-        return a[key] - b[key];
+        return ((a[key] as any) as number) - ((b[key] as any) as number);
       }
-      const textA = a[key].toUpperCase();
-      const textB = b[key].toUpperCase();
+      const textA = (a[key] as any).toUpperCase();
+      const textB = (b[key] as any).toUpperCase();
       // eslint-disable-next-line no-nested-ternary
       return textA < textB ? -1 : textA > textB ? 1 : 0;
     });
@@ -482,7 +482,7 @@ export default class IndexableArray<
     return array._copyMeta(this);
   }
 
-  // public map<U extends I>(callbackFn: Callback<I, DK, OK, TH, U>, thisArg?: object, ...rest: never[]): IndexableArray<U, DK, OK, TH>;
+  // public map<U extends I>(callbackFn: Callback<I, DK, OK, TH, U>, thisArg?: object, ...rest: any[]): IndexableArray<U, DK, OK, TH>;
   public map<U extends Pick<I, DK | OK>, DK2 extends keyof U = DK, OK2 extends keyof U = OK>(
     callbackFn: Callback<I, DK, OK, TH, U>,
     defaultKey?: DK2,
@@ -496,13 +496,13 @@ export default class IndexableArray<
     ...indexKeys: OK2[]
   ): IndexableArray<U, DK2, Exclude<OK2, DK2>, TH>;
 
-  public map<U extends any, DK2 extends keyof U, OK2 extends keyof U = never>(
+  public map<U extends any, DK2 extends keyof U, OK2 extends keyof U = any>(
     callbackFn: Callback<I, DK, OK, TH, U>,
     defaultKey: DK2,
     ...indexKeys: OK2[]
   ): IndexableArray<U, DK2, Exclude<OK2, DK2>, TH>;
 
-  public map<U extends any, DK2 extends keyof U, OK2 extends keyof U = never>(
+  public map<U extends any, DK2 extends keyof U, OK2 extends keyof U = any>(
     callbackFn: Callback<I, DK, OK, TH, U>,
     thisArg: object,
     defaultKey: DK2,
@@ -528,7 +528,7 @@ export default class IndexableArray<
    * const usersWithName = new IndexableArray({ id: 23, name: "Geroge" }, { id: 96, name: "Lisa" }).addIndex("name");
    * const usersWithNick = usersWithName.map(user => ({ id: user.id, nick: name.substring(0,2) })).addIndex("nick"); // Has only "nick" index.
    */
-  public map<U extends any, DK2 extends keyof U = DK, OK2 extends keyof U = never>(
+  public map<U extends any, DK2 extends keyof U, OK2 extends keyof U = any>(
     callbackFn: Callback<I, DK, OK, TH, U>,
     defaultKeyOrThisArg?: DK2 | object,
     ...keys: [DK2, ...OK2[]] | OK2[]
@@ -553,7 +553,7 @@ export default class IndexableArray<
   // public flatMap<U extends I, This extends undefined | object = undefined>(
   //   callbackFn: CallbackThis<I, DK, OK, TH, U | readonly U[], This>,
   //   thisArg?: object,
-  //   ...rest: never[]
+  //   ...rest: any[]
   // ): IndexableArray<U, DK, OK, TH>;
   public flatMap<
     U extends Pick<I, DK | OK>,
@@ -578,13 +578,13 @@ export default class IndexableArray<
     ...indexKeys: OK2[]
   ): IndexableArray<U, DK2, Exclude<OK2, DK2>, TH>;
 
-  public flatMap<U extends any, DK2 extends keyof U, OK2 extends keyof U = never, This extends undefined | object = undefined>(
+  public flatMap<U extends any, DK2 extends keyof U, OK2 extends keyof U = any, This extends undefined | object = undefined>(
     callbackFn: CallbackThis<I, DK, OK, TH, U | readonly U[], This>,
     defaultKey: DK2,
     ...indexKeys: OK2[]
   ): IndexableArray<U, DK2, Exclude<OK2, DK2>, TH>;
 
-  public flatMap<U extends any, DK2 extends keyof U, OK2 extends keyof U = never, This extends undefined | object = undefined>(
+  public flatMap<U extends any, DK2 extends keyof U, OK2 extends keyof U = any, This extends undefined | object = undefined>(
     callbackFn: CallbackThis<I, DK, OK, TH, U | readonly U[], This>,
     thisArg: object,
     defaultKey: DK2,
@@ -594,7 +594,7 @@ export default class IndexableArray<
   public flatMap<U extends any, This extends undefined | object = undefined>(
     callbackFn: CallbackThis<I, DK, OK, TH, U | readonly U[], This>,
     thisArg?: This,
-    ...rest: never[]
+    ...rest: any[]
   ): IndexableArray<U, AvailableDefaultIndex<U, DK, OK>, AvailableIndex<U, DK, OK>, TH>;
 
   /**
@@ -607,7 +607,7 @@ export default class IndexableArray<
    * @param keys are the keys to be indexed.
    * @returns a new `IndexableArray` of dept 1.
    */
-  public flatMap<U extends any, DK2 extends keyof U = DK, OK2 extends keyof U = never, This extends undefined | object = undefined>(
+  public flatMap<U extends any, DK2 extends keyof U, OK2 extends keyof U = any, This extends undefined | object = undefined>(
     callbackFn: CallbackThis<I, DK, OK, TH, U | readonly U[], This>,
     defaultKeyOrThisArg: DK2 | This,
     ...keys: [DK2, ...OK2[]] | OK2[]
@@ -685,7 +685,7 @@ export default class IndexableArray<
     { key = this.defaultKey as K, fromIndex = 0 }: { key?: K; fromIndex?: number } = {}
   ): number {
     this.assertIndexEnabled();
-    const sortedIndex = this.getLookup(key, value).get(value);
+    const sortedIndex = this.getLookup(key, value as any).get(value as any);
     let index;
 
     if (sortedIndex) {
@@ -705,7 +705,7 @@ export default class IndexableArray<
    */
   public getAllIndexes<K extends OK | DK>(value: I[K], { key = this.defaultKey as K }: { key?: K } = {}): number[] {
     this.assertIndexEnabled();
-    return this.getLookup(key, value).get(value) || [];
+    return this.getLookup(key, value as any).get(value as any) || [];
   }
 
   /**
@@ -730,8 +730,8 @@ export default class IndexableArray<
     const index = this.getIndex(value, { key, fromIndex });
 
     if (throwUnknown && index === -1) {
-      const firstObjectElement = this.find(e => typeof e === "object");
-      const possibleType = firstObjectElement && `${firstObjectElement.constructor.name}'s `;
+      const firstObjectElement = this.find((e) => typeof e === "object");
+      const possibleType = firstObjectElement && `${(firstObjectElement as any).constructor.name}'s `;
       throw new Error(`'${value}' cannot be found in ${possibleType || ""}${key}.`);
     }
 
@@ -778,7 +778,7 @@ export default class IndexableArray<
   public getAll<K extends DK | OK>(value: I[K], { key = this.defaultKey as K }: { key?: K } = {}): I[] {
     this.assertIndexEnabled();
     const allIndexes = this.getAllIndexes(value, { key });
-    return allIndexes.map(index => this[index]);
+    return allIndexes.map((index) => this[index]);
   }
 
   /**
